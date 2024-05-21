@@ -163,6 +163,13 @@ const errors = {
         },
         status: 400
     },
+    invalidRemove: {
+        message: {
+            en: "The number of bonus points to be reduced must be less than the current number of bonus points.",
+            fr: "Le nombre de points de bonification à réduire doit être inférieur au nombre actuel de points de bonification."
+        },
+        status: 400
+    },
     nonexistingUser: {
         message: {
             en: "This user does not exists please consider signing up",

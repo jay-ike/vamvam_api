@@ -163,37 +163,84 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
   }
 
   async function incentiveBonus(req, res){
+    let walletSummer;
+    let currentBonus;
     const {bonus, driverId, type} = req.body;
     try {
-      await transactionModel.create({
-        bonus,
-        driverId,
-        point: staticPaymentProps.recharge_point,
-        type: type,
-        unitPrice: staticPaymentProps.debit_amount
-    });
-    res.status(200).json({});
-    if( type === "recharge"){
-      associations.Delivery.emitEvent("incentive-bonus", {
-        payload: {
-          amount: bonus * staticPaymentProps.debit_amount,
-          bonus
-        },
-        userId: driverId
-      });
-    } else {
-      associations.Delivery.emitEvent("bonus-withdrawal", {
-        payload: {
-          amount: bonus * staticPaymentProps.debit_amount,
-          bonus
-        },
-        userId: driverId
-      });
+      if (type === "recharge") {
+        await transactionModel.create({
+          bonus,
+          driverId,
+          point: staticPaymentProps.recharge_point,
+          type: type,
+          unitPrice: staticPaymentProps.debit_amount
+        });
+        res.status(200).json({});
+        associations.Delivery.emitEvent("incentive-bonus", {
+          payload: {
+            amount: bonus * staticPaymentProps.debit_amount,
+            bonus
+          },
+          userId: driverId
+        });
+      } else {
+        walletSummer = await transactionModel.getDriverBalance(driverId);
+        currentBonus = walletSummer.bonus;
+        if (bonus > currentBonus) {
+          sendResponse(res, errors.invalidRemove);
+        } else {
+          await transactionModel.create({
+            bonus,
+            driverId,
+            point: staticPaymentProps.recharge_point,
+            type: type,
+            unitPrice: staticPaymentProps.debit_amount
+          });
+          associations.Delivery.emitEvent("bonus-withdrawal", {
+            payload: {
+              amount: bonus * staticPaymentProps.debit_amount,
+              bonus
+            },
+            userId: driverId
+          });
+        }
     }
     } catch (error) {
       return sendResponse(res, errors.internalError);
     }
   }
+  // async function incentiveBonus(req, res){
+  //   const {bonus, driverId, type} = req.body;
+  //   try {
+  //     await transactionModel.create({
+  //       bonus,
+  //       driverId,
+  //       point: staticPaymentProps.recharge_point,
+  //       type: type,
+  //       unitPrice: staticPaymentProps.debit_amount
+  //   });
+  //   res.status(200).json({});
+  //   if( type === "recharge"){
+  //     associations.Delivery.emitEvent("incentive-bonus", {
+  //       payload: {
+  //         amount: bonus * staticPaymentProps.debit_amount,
+  //         bonus
+  //       },
+  //       userId: driverId
+  //     });
+  //   } else {
+  //     associations.Delivery.emitEvent("bonus-withdrawal", {
+  //       payload: {
+  //         amount: bonus * staticPaymentProps.debit_amount,
+  //         bonus
+  //       },
+  //       userId: driverId
+  //     });
+  //   }
+  //   } catch (error) {
+  //     return sendResponse(res, errors.internalError);
+  //   }
+  // }
 
   async function transactionHistory(req, res) {
     const page = parseInt(req.query.page) || 1;
@@ -224,7 +271,7 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
     const limit = parseInt(req.query.limit) || 8;
     const offset = (page - 1) * limit;
     try {
-      const { startDate, endDate, type } = req.body;
+      const { startDate, endDate, type } = req.query;
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);

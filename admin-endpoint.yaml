@@ -235,7 +235,7 @@ admin-manager:
     action: "create new bundle"
     type: post
     body:
-      bonus: doudle
+      bonus: double
       point: double
       unitPrice: double
 
@@ -246,7 +246,7 @@ admin-manager:
       id: string
     response:
       title: string
-      bonus: doudle
+      bonus: double
       point: double
       unitPrice: double
       price: double
@@ -259,7 +259,7 @@ admin-manager:
     response:
       data:
         id: string
-        bonus: doudle
+        bonus: double
         point: double
         unitPrice: double
         price: double
@@ -270,7 +270,7 @@ admin-manager:
     type: post
     body:
       id: string
-      bonus: doudle
+      bonus: double
       point: double
       unitPrice: double
     response:
