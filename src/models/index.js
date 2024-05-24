@@ -44,7 +44,8 @@ Registration.forward("new-registration").to(delivery);
 
 Trans.getAllByTime= async function ({limit, offset, start, end, type}) {
     let result;
-    result = await Trans.findAndCountAll({
+    let query;
+    query = {
         include: [
             {
                 as: "Driver",
@@ -56,13 +57,14 @@ Trans.getAllByTime= async function ({limit, offset, start, end, type}) {
         limit,
         offset,
         order,
-        where: {
-            type: type,
-            createdAt: {
-              [Op.between]: [start, end],
-            }
-        },
-    });
+    }
+    if (type !== null) {
+        query.where = {type: type};
+    }
+    if (start !== null && end !== null) {
+        query.where.createdAt = {[Op.between]: [start, end]}
+    }
+    result = await Trans.findAndCountAll(query);
     result.rows = result.rows.map(function (row) {
         const {
             bonus,
@@ -87,6 +89,71 @@ Trans.getAllByTime= async function ({limit, offset, start, end, type}) {
     });
     return result;
 };
+// Trans.getAllByTime= async function ({limit, offset, start, end, type}) {
+//     let result;
+//     let query;
+//     query = {
+//         include: [
+//             {
+//                 as: "Driver",
+//                 attributes: ["id", "firstName", "lastName", "avatar"],
+//                 model: User,
+//                 require: true
+//             }
+//         ],
+//         limit,
+//         offset,
+//         order,
+//     }
+//     if (type !== null) {
+//         query.where = {type: type};
+//     }
+//     if (start !== null && end !== null) {
+//         query.where.createdAt = {[Op.between]: [start, end]}
+//     }
+//     result = await Trans.findAndCountAll({
+//         include: [
+//             {
+//                 as: "Driver",
+//                 attributes: ["id", "firstName", "lastName", "avatar"],
+//                 model: User,
+//                 require: true
+//             }
+//         ],
+//         limit,
+//         offset,
+//         order,
+//         where: {
+//             type: type,
+//             createdAt: {
+//               [Op.between]: [start, end],
+//             }
+//         },
+//     });
+//     result.rows = result.rows.map(function (row) {
+//         const {
+//             bonus,
+//             createdAt: date,
+//             point,
+//             unitPrice
+//         } = row;
+//         const {
+//             avatar,
+//             firstName,
+//             lastName
+//         } = row.Driver
+//         return Object.freeze({
+//             amount: point * unitPrice,
+//             bonus,
+//             date,
+//             point,
+//             avatar,
+//             firstName,
+//             lastName
+//         });
+//     });
+//     return result;
+// };
 
 delivery.getDriverBalance = Trans.getDriverBalance;
 module.exports = Object.freeze({
