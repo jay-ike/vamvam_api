@@ -209,38 +209,6 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
       return sendResponse(res, errors.internalError);
     }
   }
-  // async function incentiveBonus(req, res){
-  //   const {bonus, driverId, type} = req.body;
-  //   try {
-  //     await transactionModel.create({
-  //       bonus,
-  //       driverId,
-  //       point: staticPaymentProps.recharge_point,
-  //       type: type,
-  //       unitPrice: staticPaymentProps.debit_amount
-  //   });
-  //   res.status(200).json({});
-  //   if( type === "recharge"){
-  //     associations.Delivery.emitEvent("incentive-bonus", {
-  //       payload: {
-  //         amount: bonus * staticPaymentProps.debit_amount,
-  //         bonus
-  //       },
-  //       userId: driverId
-  //     });
-  //   } else {
-  //     associations.Delivery.emitEvent("bonus-withdrawal", {
-  //       payload: {
-  //         amount: bonus * staticPaymentProps.debit_amount,
-  //         bonus
-  //       },
-  //       userId: driverId
-  //     });
-  //   }
-  //   } catch (error) {
-  //     return sendResponse(res, errors.internalError);
-  //   }
-  // }
 
   async function transactionHistory(req, res) {
     const page = parseInt(req.query.page) || 1;
@@ -265,23 +233,21 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
       wallet: data
     });
   }
-
   async function rechargeHistory(req, res) {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 8;
     const offset = (page - 1) * limit;
+    const { type } = req.query;
+    let query;
+    query = {
+      limit: limit,
+      offset: offset,
+    }
     try {
-      const { startDate, endDate, type } = req.query;
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      const { rows, count } = await transactionModel.getAllByTime({
-        limit,
-        offset,
-        start,
-        end,
-        type,
-      });
+      if (type !== null && typeof type !== "undefined") {
+        query.type = type
+      }
+      const { rows, count } = await transactionModel.getAllByTime(query);
       res.status(200).json({
         data: rows,
         total: count,

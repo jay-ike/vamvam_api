@@ -170,6 +170,13 @@ const errors = {
         },
         status: 400
     },
+    invalidDate: {
+        message: {
+            en: "The date you have entered is not valid.",
+            fr: "La date que vous avez indiquée n'est pas valide."
+        },
+        status: 400
+    },
     nonexistingUser: {
         message: {
             en: "This user does not exists please consider signing up",

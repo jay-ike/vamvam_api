@@ -283,14 +283,11 @@ admin-manager:
       id: string
 
   /transaction/payment-history:
-    action: "lists payments within a given time interval"
+    action: "lists payments"
     type: get
     query:
       page: double
       limit: double
-    body:
-      startDate: Date
-      endDate: Date
       type: string
     response:
       total: double
