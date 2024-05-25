@@ -28,10 +28,9 @@ function getTransactionRouter(module){
     );
     router.get(
         "/payment-history",
-        transactonModule.rechargeHistory
-        // protectRoute,
-        // allowRoles([roles.adminRole]),
-        // errorHandler(transactonModule.rechargeHistory)
+        protectRoute,
+        allowRoles([roles.adminRole]),
+        errorHandler(transactonModule.rechargeHistory)
     );
     router.get(
         "/wallet-infos",
