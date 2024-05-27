@@ -27,6 +27,28 @@ function defineTransaction (connection) {
         }
     };
     const transaction = connection.define("transaction", schema );
+    // transaction.prototype.toResponse = function () {
+    //     let data = this.dataValues;
+    //     let result = {};
+    //     Object.assign(result, data);
+    //     result.position = formatDbPoint(result.position);
+    //     if (result.avatar !== null && result.avatar !== undefined) {
+    //         result.avatar = pathToURL(result.avatar);
+    //     }
+    //     if (result.carInfos !== null && result.carInfos !== undefined) {
+    //         result.carInfos = pathToURL(result.carInfos);
+    //     }
+    //     if (result.role !== availableRoles.driverRole) {
+    //         delete result.carInfos;
+    //         delete result.available;
+    //         delete result.position;
+    //     }
+    //     result = propertiesPicker(result)(allowedProps);
+    //     if (data.deletedAt !== null) {
+    //         result.deleted = true;
+    //     }
+    //     return result;
+    // };
     transaction.getAllByType= async function ({limit, offset, id, type}) {
         const result = await transaction.findAndCountAll({
             limit,

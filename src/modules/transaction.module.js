@@ -10,6 +10,8 @@ const {
   sendResponse,
   getPaymentService,
   paymentManager,
+  ressourcePaginator,
+  parseParam
 } = require("../utils/helpers");
 
 function getTransactionModule({associatedModels, model, paymentHandling}) {
@@ -19,6 +21,7 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
     paymentHandling || paymentManager(getPaymentService(associations.Payment));
 
     associations.Delivery.addEventListener("point-withdrawal-requested", withdrawal);
+  const transactionPagination = ressourcePaginator(transactionModel.getAll);
 
   async function verifyPaymentData(req, res, next) {
     let pack;
@@ -255,6 +258,46 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
     } catch (error) {
       sendResponse(res, errors.internalError);
     }
+  }
+  // async function rechargeHistory(req, res) {
+  //   const page = parseInt(req.query.page) || 1;
+  //   const limit = parseInt(req.query.limit) || 8;
+  //   const offset = (page - 1) * limit;
+  //   const { type } = req.query;
+  //   let query;
+  //   query = {
+  //     limit: limit,
+  //     offset: offset,
+  //   }
+  //   try {
+  //     if (type !== null && typeof type !== "undefined") {
+  //       query.type = type
+  //     }
+  //     const { rows, count } = await transactionModel.getAllByTime(query);
+  //     res.status(200).json({
+  //       data: rows,
+  //       total: count,
+  //     });
+  //   } catch (error) {
+  //     sendResponse(res, errors.internalError);
+  //   }
+  // }
+  async function rechargeHistory(req, res) {
+    let {maxPageSize, type, skip} = req.query;
+    const pageToken = req.headers["page-token"];
+    const getParams = function (params) {
+      if (typeof type === "string" && type.length > 0) {
+        params.type = type;
+      }
+      return params;
+    };
+    results = await transactionPagination({
+      getParams,
+      maxPageSize,
+      pageToken,
+      skip
+    });
+    res.status(200).json(results);
   }
 
   async function creditSumInfos(req, res) {

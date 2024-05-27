@@ -4,7 +4,8 @@ const {errorHandler} = require("../utils/helpers");
 const {availableRoles: roles} = require("../utils/config");
 const {
     allowRoles,
-    protectRoute
+    protectRoute,
+    parsePaginationHeaders
 } = require("../utils/middlewares");
 
 function getTransactionRouter(module){
@@ -30,6 +31,7 @@ function getTransactionRouter(module){
         "/payment-history",
         protectRoute,
         allowRoles([roles.adminRole]),
+        parsePaginationHeaders,
         errorHandler(transactonModule.rechargeHistory)
     );
     router.get(
