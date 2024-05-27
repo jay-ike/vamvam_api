@@ -87,7 +87,9 @@ function defineTransaction (connection) {
             ],
             group: ["type"]
         }
-             
+        if (id !== null && typeof id !== "undefined") {
+            query.where = {driverId: id};
+        }
         result = await transaction.findAll(query);
         result = result.reduce(function (acc, entry) {
             let factor;

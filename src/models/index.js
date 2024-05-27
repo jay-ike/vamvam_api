@@ -54,7 +54,7 @@ Trans.getAll = async function ({
     if (typeof type === "string") {
         query.where = {type: type};
     }
-    // query.paranoid = false;
+    query.paranoid = false;
     query.include =  [
         {
             as: "Driver",

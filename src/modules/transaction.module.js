@@ -11,7 +11,6 @@ const {
   getPaymentService,
   paymentManager,
   ressourcePaginator,
-  parseParam
 } = require("../utils/helpers");
 
 function getTransactionModule({associatedModels, model, paymentHandling}) {
@@ -235,29 +234,6 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
     res.status(200).json({
       wallet: data
     });
-  }
-  async function rechargeHistory(req, res) {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 8;
-    const offset = (page - 1) * limit;
-    const { type } = req.query;
-    let query;
-    query = {
-      limit: limit,
-      offset: offset,
-    }
-    try {
-      if (type !== null && typeof type !== "undefined") {
-        query.type = type
-      }
-      const { rows, count } = await transactionModel.getAllByTime(query);
-      res.status(200).json({
-        data: rows,
-        total: count,
-      });
-    } catch (error) {
-      sendResponse(res, errors.internalError);
-    }
   }
   // async function rechargeHistory(req, res) {
   //   const page = parseInt(req.query.page) || 1;
