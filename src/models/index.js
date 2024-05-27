@@ -16,6 +16,9 @@ const Settings = require("./settings.js")(connection);
 const {Sponsor, Sponsorship} = require("./sponsor.js")(connection, User);
 const types = require("./helper");
 const order = [["createdAt", "DESC"]];
+const {
+    apiDeliveryStatus,
+} = require("../utils/config");
 
 Bundle.hasOne(Payment, {
     as: "Pack",
@@ -43,6 +46,25 @@ Settings.addEventListener("settings-update", function (data) {
 });
 Settings.forward("user-revocation-requested").to(delivery);
 Registration.forward("new-registration").to(delivery);
+
+delivery.getAnalytics = async function getAnalytics({from, to}) {
+    let results = await delivery.getAllStats({from, to});
+    const initialResult = Object.keys(apiDeliveryStatus).reduce(
+        function (acc, key) {
+            acc[key] = 0;
+            return acc;
+        },
+        {total: 0}
+    );
+    results = results.reduce(function (acc, entry) {
+        if (dbStatusMap[entry.status] !== undefined) {
+            acc[dbStatusMap[entry.status]] = entry.count;
+            acc.total += entry.count;
+        }
+        return acc;
+    }, initialResult);
+    return results;
+}
 
 Trans.getAll = async function ({
     maxSize = 10,
@@ -167,8 +189,8 @@ Trans.getAllCount = async function countGetter({from, to}) {
     return result;
 };
 User.getTransactionCount = Trans.getAllCount;
-
 delivery.getDriverBalance = Trans.getDriverBalance;
+User.getDeliveriesAnalytics = delivery.getAnalytics;
 module.exports = Object.freeze({
     Blacklist,
     Bundle,
