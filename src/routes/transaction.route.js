@@ -43,7 +43,7 @@ function getTransactionRouter(module){
         "/recharge-infos",
         protectRoute,
         allowRoles([roles.adminRole]),
-        errorHandler(transactonModule.creditSumInfos)
+        errorHandler(transactonModule.creditSumInfos) 
     );
     router.post(
         "/handle-bonus",

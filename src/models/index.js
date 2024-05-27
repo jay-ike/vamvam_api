@@ -1,5 +1,6 @@
 /*jslint node*/
-const {Op} = require("sequelize");
+// const {Op} = require("sequelize");
+const {col, fn, literal} = require("sequelize");
 const {sequelizeConnection} = require("../utils/db-connector.js");
 const connection = sequelizeConnection();
 const User = require("./user.js")(connection);
@@ -141,6 +142,31 @@ Trans.getAllByTime= async function ({limit, offset, type}) {
     });
     return result;
 };
+Trans.getAllCount = async function countGetter({from, to}) {
+    let query;
+    query = {
+        attributes: [
+            "type",
+            [fn("SUM", col("point")), "totalPoint"],
+            [fn("SUM", literal("`point` * `unitPrice`" )), "totalAmount"],
+            [fn("SUM", col("bonus")), "totalBonus"],
+        ],
+        group: ["type"],
+        where: types.buildPeriodQuery(from, to)
+    }
+    result = await Trans.findAll(query);
+    result = result.reduce(function (acc, entry) {
+        let factor;
+        const {type, totalPoint, totalAmount, totalBonus} = entry.dataValues;
+        factor = (type === "recharge" ? 1 : -1);
+        acc.bonus += factor * totalBonus;
+        acc.point += factor * totalPoint;
+        acc.total += factor * totalAmount;
+        return acc;
+    }, { bonus: 0, point: 0, total: 0});
+    return result;
+};
+User.getTransactionCount = Trans.getAllCount;
 
 delivery.getDriverBalance = Trans.getDriverBalance;
 module.exports = Object.freeze({

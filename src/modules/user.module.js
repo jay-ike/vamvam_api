@@ -174,8 +174,9 @@ function getUserModule({
     }
 
     async function getCountByRole(req, res) {
-        let result = await userModel.getRolesCount(req.query ?? {});
-        res.json(result);
+        let users = await userModel.getRolesCount(req.query ?? {});
+        let transactions = await userModel.getTransactionCount(req.query ?? {});
+        res.json({users, transactions});
     }
 
     return Object.freeze({
