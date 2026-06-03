@@ -1,4 +1,5 @@
 
+require("dotenv").config();
 const {
   after,
   afterEach,
@@ -51,7 +52,7 @@ describe("Message test", function () {
       departureAddress: deliveries[0].departure.address,
       destinationAddress: deliveries[0].destination.address
     };
-    await connection.sync({ force: true });
+    await connection.sync({force: true});
     dbUsers = await syncUsers(users, User);
     delivery.clientId = dbUsers.goodUser.id;
     delivery.driverId = dbUsers.firstDriver.id;

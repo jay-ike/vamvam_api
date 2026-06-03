@@ -144,7 +144,7 @@ Trans.getAllByTime = async function ({limit, offset, type}) {
     return result;
 };
 
-async function transactionSummary({fieldMap, from, id, to}) {
+async function transactionSummary({fieldMap = {}, from, id, to}) {
     let query;
     let results;
     const defautResult = {};
@@ -173,7 +173,6 @@ async function transactionSummary({fieldMap, from, id, to}) {
                 literal("-1 * `bonus`")
             )), fieldMap.bonus ?? "bonus"]
         ],
-        group: ["type"],
         where: buildClause(Op.and, buildPeriodQuery(from, to))
     };
     if (id !== null && id !== undefined) {
@@ -268,7 +267,11 @@ User.getTransactionCount = (from, to) => transactionSummary({
     from,
     to
 });
-delivery.getDriverBalance = (id) => transactionSummary({id});
+delivery.getDriverBalance = async function (id) {
+    const balance = await transactionSummary({id});
+    balance.hasCredit = balance.bonus >= 1 || balance.point >= 1;
+    return balance;
+};
 module.exports = Object.freeze({
     Blacklist,
     Bundle,

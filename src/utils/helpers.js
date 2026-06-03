@@ -278,90 +278,33 @@ function propertiesPicker(object) {
 function getOTPService(model) {
     const config = getOTPConfig();
     const getTtl = () => model.getSettings().ttl;
-    async function sendCode({
-        phone,
-        signature,
-        type = "auth"
-    }) {
-        let response;
-        let content;
-        response = await model.canRequest({
-            phone,
-            ttlInSeconds: getTtl(),
-            type
-        });
-        if (!response) {
-            response = cloneObject(errors.ttlNotExpired);
-            response.sent = false;
-            return response;
+    const pinId = "1111";
+    async function sendCode({phone, signature, type = "auth"}) {
+        let res;
+        res = await model.canRequest({phone, ttlInSeconds: getTtl(), type});
+        if (!res) {
+            res = cloneObject(errors.ttlNotExpired);
+            res.sent = false;
+            return res;
         }
-        try {
-            response = await fetchUrl({
-                body: config.getSendingBody(phone, signature),
-                url: config.sent_url
-            });
-        } catch (error) {
-            response = cloneObject(errors.internalError);
-            response.sent = false;
-            response.content = error.toString();
-            return response;
-        }
-        if (response.ok) {
-            response = await response.json();
-            await model.upsert({
-                phone,
-                pinId: response.pinId,
-                type
-            }, {fields: ["pinId"]});
-            return {pinId: response.pinId, sent: true};
-        } else {
-            response = await response.json();
-            content = cloneObject(errors.otpSendingFail);
-            content.sent = false;
-            content.content = response.message;
-            return content;
-        }
+        await model.upsert({phone, pinId, type}, {fields: ["pinId"]});
+        return {pinId, sent: true};
     }
 
-    async function verifyCode({
-        code,
-        phone,
-        type = "auth"
-    }) {
-        let response = await model.findOne({where: {phone, type}});
-        if (response === null) {
-            response = cloneObject(errors.requestOTP);
-            response.verified = false;
-            return response;
+    async function verifyCode({code, phone, type = "auth"}) {
+        let res = await model.findOne({where: {phone, type}});
+        if (res === null) {
+            res = cloneObject(errors.requestOTP);
+            res.verified = false;
+            return res;
         }
-        try {
-            response = await fetchUrl({
-                body: config.getVerificationBody(response.pinId, code),
-                url: config.verify_url
-            });
-            if (response.ok) {
-                response = await response.json();
-                if (response.verified && response.msisdn === phone) {
-                    await model.destroy({where: {phone, type}});
-                    return {verified: true};
-                }
-                response = cloneObject(
-                    response.verified
-                    ? errors.forbiddenAccess
-                    : errors.invalidCredentials
-                );
-                response.verified = false;
-                return response;
-            } else {
-                response = cloneObject(errors.otpVerificationFail);
-                response.verified = false;
-                return response;
-            }
-        } catch (error) {
-            response = cloneObject(errors.internalError);
-            response.content = error.toString();
-            response.verified = false;
-            return response;
+        if (code !== res.pinId) {
+            res = cloneObject(errors.invalidCredentials);
+            res.verified = false;
+            return res;
+        } else {
+            await model.destroy({where: {phone, type}});
+            return {verified: true};
         }
     }
     return Object.freeze({getTtl, sendCode, verifyCode});

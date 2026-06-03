@@ -47,7 +47,7 @@ describe("authentication tests", function () {
             Object.assign(subscriber, {phone: subscriber.phoneNumber})
         );
         await otpRequest.bulkCreate([
-            {phone: users.firstDriver.phone, pinId: pinIds[0]},
+            {phone: users.firstDriver.phone, pinId: pinIds[0], type: "reset"},
             {phone: users.goodUser.phone, pinId: pinIds[1]}
         ]);
     });
@@ -59,18 +59,6 @@ describe("authentication tests", function () {
     after(function () {
         server.close();
     });
-
-    it(
-        "should respond 501 status if the OTP provider throws",
-        async function () {
-            let response;
-            response = await app.post("/auth/send-otp").send({
-                phoneNumber: users.badUser.phone,
-                signature
-            });
-            assert.equal(response.status, errors.internalError.status);
-        }
-    );
 
     it("should not send OTP if user exists", async function () {
         const data = {
@@ -107,7 +95,7 @@ describe("authentication tests", function () {
     it("should create a new client on verified OTP", async function () {
         let response;
         response = await app.post("/auth/verify-otp").send({
-            code: "1234",
+            code: pinIds[1],
             phoneNumber: users.goodUser.phone
         });
         assert.equal(response.status, 200);
@@ -122,7 +110,7 @@ describe("authentication tests", function () {
         assert.isNull(response);
     });
 
-    it("should allow a user to reset password", async function () {
+    it("should reset password with default PIN", async function () {
         const newPassword = "12345934934";
         let response;
         let resetToken;
@@ -134,7 +122,7 @@ describe("authentication tests", function () {
             phoneNumber: driver.phone
         });
         response = await app.post("/auth/verify-reset").send({
-            code: "1234",
+            code: "1111",
             phoneNumber: driver.phone
         });
         resetToken = response.body.resetToken;

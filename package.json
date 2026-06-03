@@ -4,7 +4,7 @@
   "description": "vamvam api server",
   "main": "app.js",
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha",
+    "test": "node ./node_modules/mocha/bin/mocha --exit --recursive --timeout 10000 --reporter spec",
     "start": "cross-env NODE_ENV=development node app.js",
     "preprod": "cross-env NODE_ENV=production node app.js"
   },

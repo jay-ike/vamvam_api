@@ -202,7 +202,7 @@ describe("sponsoring tests", function () {
             return result;
         });
         allUsers = await User.bulkCreate(allUsers);
-        Sponsorship.bulkCreate(allUsers.map(function (user, index) {
+        await Sponsorship.bulkCreate(allUsers.map(function (user, index) {
             let sponsorId;
             if (index % 3 === 0) {
                 sponsorId = sponsors[0].id;

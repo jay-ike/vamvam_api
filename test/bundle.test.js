@@ -1,6 +1,7 @@
 /*jslint
 node, nomen
 */
+require("dotenv").config();
 const {after,before, describe, it} = require("mocha");
 const {assert} = require("chai");
 const {Bundle, User, connection} = require("../src/models");
@@ -65,7 +66,6 @@ describe("Bundle CRUD test", function () {
   it("should return bundle infos", async function () {
     let response;
     let bundle;
-    
     bundle = await Bundle.create(bundles[0]);
     const id = bundle.id;
     response = await app

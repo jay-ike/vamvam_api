@@ -15,6 +15,7 @@ function settingReducer(acc, [key, setting]) {
     };
     return acc;
 }
+const {env} = process;
 const availableRoles = {
     adminRole: "admin",
     clientRole: "client",
@@ -142,7 +143,7 @@ const config = Object.freeze({
         const {
             fb_serverKey: key,
             msg_url: url
-        } = process.env;
+        } = env;
         return Object.freeze({
             headers: {
                 Authorization: "key=" + key,
@@ -152,7 +153,7 @@ const config = Object.freeze({
         });
     },
     getOTPConfig() {
-        const {otp_key, otp_send, otp_verify} = process.env;
+        const {otp_key, otp_send, otp_verify} = env;
         return Object.freeze({
             getSendingBody(receiver, signature = "") {
                 return {
@@ -170,11 +171,7 @@ const config = Object.freeze({
                 };
             },
             getVerificationBody: function (pin_id, pin) {
-                return {
-                    api_key: otp_key,
-                    pin,
-                    pin_id
-                };
+                return {api_key: otp_key, pin, pin_id};
             },
             sent_url: otp_send,
             verify_url: otp_verify
@@ -183,35 +180,37 @@ const config = Object.freeze({
     getPaymentConfig(transactionId) {
         let verify_url;
         const result = Object.create(null);
-        verify_url = process.env.flw_verify_url ?? "";
+        verify_url = env.flw_verify_url ?? "";
         verify_url = verify_url.replace("transactionId", transactionId);
-        result.expect_currency = process.env.currency;
-        result.flw_key = process.env.FLW_SECRET_KEY;
-        result.secret_hash = process.env.FLW_SECRET_HASH;
-        result.url_charge = process.env.flw_payment_url;
+        result.expect_currency = env.currency;
+        result.flw_key = env.FLW_SECRET_KEY;
+        result.secret_hash = env.FLW_SECRET_HASH;
+        result.url_charge = env.flw_payment_url;
         result.url_verify = verify_url;
         return Object.freeze(result);
     },
     getdbConfig() {
         const result = Object.create(null);
-        result.password = process.env.DB_PASSWORD ?? null;
-        result.port = process.env.db_port;
-        result.username = process.env.DB_USER;
-        if (process.env.NODE_ENV === "development") {
-            result.database = process.env.dev_db;
+        result.host="127.0.0.1";
+        result.password = env.DB_PASSWORD ? `${env.DB_PASSWORD}` :null;
+        result.port = env.db_port;
+        result.username = env.DB_USER;
+        if (env.NODE_ENV === "development") {
+            result.database = env.dev_db;
             return Object.freeze(result);
         }
-        if (process.env.NODE_ENV === "production") {
-            result.database = process.env.production_db;
+        if (env.NODE_ENV === "production") {
+            result.database = env.production_db;
             return Object.freeze(result);
         }
-        result.database = process.env.test_db;
+        result.database = env.test_db;
+        console.log(result);
         return Object.freeze(result);
     },
     otpTypes,
     responseMessage: Object.freeze(responseMessage),
     staticPaymentProps,
-    tokenTtl: process.env.TOKEN_EXP,
+    tokenTtl: env.TOKEN_EXP,
     userStatuses
 });
 module.exports = config;

@@ -16,10 +16,15 @@ services:
       networks:
         - botnet
       ports:
-        - 3900:4000
+        - "${HOST_PORT}:${API_PORT}"
+      dns:
+        - 8.8.4.4
+        - 8.8.8.8
     db:
       image: mariadb:lts
       env_file: ./db_secret.txt
+      ports:
+        - "3306:3306"
       expose:
         - "3306"
       volumes:
@@ -29,7 +34,8 @@ services:
       restart: unless-stopped
       healthcheck:
         interval: 5s
-        retries: 3
+        retries: 5
+        start_period: 30s
         test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
         timeout: 10s
 volumes:

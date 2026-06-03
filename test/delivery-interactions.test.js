@@ -1,4 +1,5 @@
 /*jslint node */
+require("dotenv").config();
 const {
     after,
     afterEach,

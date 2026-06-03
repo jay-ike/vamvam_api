@@ -1,6 +1,7 @@
 /*jslint
 node, nomen
 */
+require("dotenv").config();
 const fs = require("node:fs");
 const {
     after,

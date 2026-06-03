@@ -2,6 +2,7 @@
 node, nomen
 */
 
+require("dotenv").config();
 const {
     after,
     afterEach,
@@ -52,6 +53,7 @@ describe("delivery CRUD test", function () {
 
     beforeEach(async function () {
         let conflicts;
+        this.timeout(30000);
         await connection.sync({force: true});
         dbUsers = await syncUsers(users, User);
         dbUsers = Object.entries(dbUsers).reduce(function (acc, [key, user]) {
@@ -77,10 +79,9 @@ describe("delivery CRUD test", function () {
                 )
             }).concat(conflicts)
         );
-
         conflicts = testDeliveries.filter(
             (delivery) => delivery.status === deliveryStatuses.inConflict
-        ).map((delivery, index) => Object.freeze({
+        ).map((delivery, index) => Object.assign({}, {
             assigneeId: (
                 index === 0
                 ? dbUsers.secondDriver.id
@@ -105,6 +106,7 @@ describe("delivery CRUD test", function () {
     });
 
     afterEach(async function () {
+        this.timeout(30000);
         await connection.drop();
     });
 
@@ -252,16 +254,20 @@ describe("delivery CRUD test", function () {
     describe("delivery state mutation tests", function () {
         let data;
         beforeEach(async function () {
-            const purchase = Object.create(null);
-            Object.assign(purchase, bundles[0]);
-            purchase.type = "recharge";
-            purchase.driverId = dbUsers.firstDriver.id;
+            this.timeout(30000);
+            const purchase = Object.assign({}, bundles[0], {
+                driverId: dbUsers.firstDriver.id,
+                type: "recharge"
+            });
             testDeliveries[1].driverId = null;
-            await testDeliveries[1].save();
-            await Transaction.create(purchase);
             data = {id: testDeliveries[1].id};
+            await testDeliveries[1].save();
+            console.log("testDeliveries updated");
+            await Transaction.create(purchase);
+            console.log("purchase created");
         });
-        it("should aprove a delivery request", async function () {
+        it("should approve a delivery request", async function () {
+            console.log("started");
             const url = "/delivery/accept";
             let response = await postData({
                 app,
@@ -269,6 +275,7 @@ describe("delivery CRUD test", function () {
                 token: dbUsers.firstDriver.token,
                 url
             });
+            console.log("accepted");
             assert.equal(response.status, 200);
             response = await postData({
                 app,
@@ -276,6 +283,7 @@ describe("delivery CRUD test", function () {
                 token: dbUsers.firstDriver.token,
                 url
             });
+            console.log("re-accepted");
             assert.equal(response.status, errors.alreadyAssigned.status);
         });
 
@@ -322,7 +330,7 @@ describe("delivery CRUD test", function () {
             response = await Delivery.findOne({where: data});
             assert.equal(response.status, deliveryStatuses.toBeConfirmed);
         });
-        
+
         it("should confirm package deposit", async function () {
             const url = "/delivery/confirm-deposit";
             let response;
