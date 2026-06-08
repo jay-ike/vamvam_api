@@ -27,6 +27,16 @@ users[availableRoles.driverRole] = {
     lastName: "driver",
     phone: "+237699999999"
 };
+users[availableRoles.registrationManager] = {
+    firstName: "Sam",
+    lastName: "manager",
+    phone: "+237699999990"
+};
+users[availableRoles.conflictManager] = {
+    firstName: "Conrad",
+    lastName: "Resolver",
+    phone: "+237699999991"
+};
 users[availableRoles.adminRole] = {email, phone};
 
 async function createTable(model) {
@@ -63,6 +73,8 @@ async function createDefaultUsers() {
     users[availableRoles.adminRole].password = await hashPassword(password);
     users[availableRoles.clientRole].password = guestPassword;
     users[availableRoles.driverRole].password = guestPassword;
+    users[availableRoles.registrationManager].password = guestPassword;
+    users[availableRoles.conflictManager].password = guestPassword;
     await models.User.bulkCreate(Object.entries(users).map(
         function ([key, value]) {
             value.role = key;

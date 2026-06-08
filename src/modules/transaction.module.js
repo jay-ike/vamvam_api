@@ -197,7 +197,7 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
                     userId: driverId
                 });
             } else {
-                walletSummer = await transactionModel.getDriverBalance(
+                walletSummer = await associations.Delivery.getDriverBalance(
                     driverId
                 );
                 currentBonus = walletSummer.bonus;
@@ -243,7 +243,7 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
     async function wallet(req, res) {
         let data;
         const {id} = req.user.token;
-        data = await transactionModel.getDriverBalance(id);
+        data = await associations.Delivery.getDriverBalance(id);
         res.status(200).json({
             wallet: data
         });
@@ -273,7 +273,7 @@ function getTransactionModule({associatedModels, model, paymentHandling}) {
                 bonus,
                 point,
                 solde
-            } = await transactionModel.getDriverBalance();
+            } = await associations.Delivery.getDriverBalance();
             res.status(200).json({
                 bonus,
                 point,

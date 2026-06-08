@@ -143,7 +143,9 @@ function getUserModule({
         } = req.files || {};
         let updated;
         let updatedProps;
+        let tmp;
         const pickedProperties = propertiesPicker(req.body);
+        tmp = await userModel.findOne({where: {id}});
         if (avatar.length > 0) {
             req.body.avatar = avatar[0].path;
         }
@@ -152,25 +154,23 @@ function getUserModule({
             req.body.carInfos = carInfos[0].path;
         }
         updatedProps = pickedProperties(userModel.genericProps);
-
-        if (updatedProps !== undefined) {
-            [updated] = await userModel.update(
-                updatedProps,
-                {
-                    individualHooks: true,
-                    where: {id, phone}
-                }
-            );
-            res.status(200).json(formatResponse({
-                avatar,
-                carInfos,
-                updated: updated > 0,
-                updatedProps
-            }));
-            await userModel.handleSponsoringRequest(id, req.body.sponsorCode);
-        } else {
+        if (!updatedProps) {
             sendResponse(res, errors.invalidUploadValues);
         }
+        if (tmp.password === null && req.body.password) {
+            updatedProps.password = req.body.password;
+        }
+        [updated] = await userModel.update(
+            updatedProps,
+            {individualHooks: true, where: {id, phone}}
+        );
+        res.status(200).json(formatResponse({
+            avatar,
+            carInfos,
+            updated: updated > 0,
+            updatedProps
+        }));
+        await userModel.handleSponsoringRequest(id, req.body.sponsorCode);
     }
 
     async function getCountByRole(req, res) {
